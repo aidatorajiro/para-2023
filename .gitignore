@@ -1,3 +1,4 @@
 node_modules
 yarn-error.log
 yarn.lock
+/vr-web/dist/main.js
