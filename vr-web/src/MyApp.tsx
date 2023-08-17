@@ -25,7 +25,7 @@ class MyApp extends React.Component<MyProps, MyState> {
             <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
             <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
             <a-sky color="#ECECEC"></a-sky>
-            <a-gltf-model src="skull_downloadable.glb" position="0 0 0"></a-gltf-model>
+            <a-gltf-model src="skull_downloadable.glb" position="0 1 -4"></a-gltf-model>
           </a-scene>
         </section>
       );
