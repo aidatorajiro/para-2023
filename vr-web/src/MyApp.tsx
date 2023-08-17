@@ -8,6 +8,7 @@ interface CommData {
   calibration_status: [number, number, number, number]
   linear_acceleration: [number, number, number]
   quaternion: [number, number, number, number]
+  time: number
 }
 
 interface MyProps {
@@ -41,7 +42,8 @@ class MyApp extends React.Component<MyProps, MyState> {
         let d: CommData[] = JSON.parse(e.data)
         let latest = d[0]
         obj?.setRotationFromQuaternion(new THREE.Quaternion(latest.quaternion[1], -latest.quaternion[0], -latest.quaternion[2], latest.quaternion[3]))
-        console.log(latest.quaternion)
+
+        obj?.position.add(new THREE.Vector3(...latest.linear_acceleration))
       })
     }
   

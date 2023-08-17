@@ -8,6 +8,8 @@ import wifi
 import socketpool
 import json
 
+time.sleep(3)
+
 print("Connecting to WiFi")
 
 wifi.radio.connect(os.getenv('CIRCUITPY_WIFI_SSID'), os.getenv('CIRCUITPY_WIFI_PASSWORD'))
@@ -29,7 +31,7 @@ sock = try_socket_forever()
 
 
 
-i2c = bitbangio.I2C(board.GP1, board.GP0, frequency=10000, timeout=100000)
+i2c = bitbangio.I2C(board.GP1, board.GP0, frequency=5000, timeout=100000)
 sensor = adafruit_bno055.BNO055_I2C(i2c)
 
 data = {}
@@ -39,6 +41,7 @@ while True:
         data["quaternion"] = sensor.quaternion
         data["linear_acceleration"] = sensor.linear_acceleration
         data["calibration_status"] = sensor.calibration_status
+        data["time"] = time.monotonic_ns()
     except Exception as e:
         print("err")
     
