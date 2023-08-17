@@ -1,10 +1,11 @@
 const net = require('net');
+const WebSocket = require('ws');
 
 let incoming_buffer = ""
 
 let incoming_parsed = []
 
-const server = net.createServer(socket => {
+const tlsServer = net.createServer(socket => {
     socket.on('data', data => {
         incoming_buffer += data.toString()
 
@@ -36,4 +37,22 @@ const server = net.createServer(socket => {
 
 }).listen(3000);
 
-console.log('listening on port 3000');
+console.log('listening on port 3000 TLS');
+
+const wsServer = new WebSocket.Server({
+    port: 3001
+});
+
+console.log('listening on port 3001 WS');
+
+let wssocks = [];
+wsServer.on('connection', function(socket) {
+  wssocks.push(socket);
+
+  socket.on('message', function(msg) {
+  });
+
+  socket.on('close', function() {
+    wssocks = wssocks.filter(s => s !== socket);
+  });
+});
