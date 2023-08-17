@@ -39,8 +39,9 @@ class MyApp extends React.Component<MyProps, MyState> {
       let obj = this.skullRef.current?.object3D;
       this.websocket.addEventListener('message', (e) => {
         let d: CommData[] = JSON.parse(e.data)
-        let latest = d[d.length - 1]
-        obj?.setRotationFromQuaternion(new THREE.Quaternion(...latest.quaternion))
+        let latest = d[0]
+        obj?.setRotationFromQuaternion(new THREE.Quaternion(latest.quaternion[1], -latest.quaternion[0], -latest.quaternion[2], latest.quaternion[3]))
+        console.log(latest.quaternion)
       })
     }
   
