@@ -1,0 +1,22 @@
+{
+  "devDependencies": {
+    "@types/aframe": "^1.2.2",
+    "@types/react": "^18.2.20",
+    "@types/react-dom": "^18.2.7",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack -w"
+  },
+  "dependencies": {
+    "aframe": "^1.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.155.0"
+  }
+}

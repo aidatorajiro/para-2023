@@ -4,10 +4,8 @@ import board
 import bitbangio
 import adafruit_bno055
 import os
-import ipaddress
 import wifi
 import socketpool
-import adafruit_requests
 import json
 
 print("Connecting to WiFi")
@@ -20,7 +18,7 @@ def try_socket_forever():
     while True:
         try:
             socket_new = pool.socket()
-            socket_new.connect(("192.168.1.56", 3000))
+            socket_new.connect((os.getenv('SERVER_HOSTNAME'), 3000))
             return socket_new
         except OSError:
             print("socket connect retrying")
