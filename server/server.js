@@ -24,7 +24,11 @@ const tlsServer = net.createServer(socket => {
 
         incoming_buffer = buffer_split[buffer_split.length - 1]
 
-        console.log(incoming_parsed.length)
+        console.log("sending", incoming_parsed.length, "of data")
+
+        broadcast_data(JSON.stringify(incoming_parsed))
+
+        incoming_parsed = []
     });
 
     socket.on('close', () => {
@@ -38,6 +42,10 @@ const tlsServer = net.createServer(socket => {
 }).listen(3000);
 
 console.log('listening on port 3000 TLS');
+
+
+
+
 
 const wsServer = new WebSocket.Server({
     port: 3001
@@ -56,3 +64,10 @@ wsServer.on('connection', function(socket) {
     wssocks = wssocks.filter(s => s !== socket);
   });
 });
+
+const broadcast_data = (d) => {
+    for (let i = 0; i < wssocks.length; i++) {
+        let sock = wssocks[i];
+        sock.send(d)
+    }
+}
