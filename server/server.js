@@ -1,32 +1,46 @@
 const net = require('net');
 const WebSocket = require('ws');
+const struct = require('python-struct');
 
-let incoming_buffer = ""
-
-let incoming_parsed = []
+function sliceBuffer(chunksize, buf) {
+    let out_main = []
+    while (buf.length >= chunksize) {
+        let sliced = buf.slice(0, chunksize)
+        buf = buf.slice(chunksize)
+        out_main.push(sliced)
+    }
+    return [out_main, buf]
+}
 
 const tlsServer = net.createServer(socket => {
+    let incoming_buffer = Buffer.from([])
+
+    let incoming_parsed = []
+
     socket.on('data', data => {
-        incoming_buffer += data.toString()
+        incoming_buffer = Buffer.concat([incoming_buffer, data])
 
-        let buffer_split = incoming_buffer.split("\n");
-        for (let i = 0; i < buffer_split.length - 1; i++) {
-            let segment = buffer_split[i];
-            if (segment !== '') {
-                try {
-                    let parsed_segment = JSON.parse(segment)
-                    incoming_parsed.push(parsed_segment)
-                } catch (e) {
-                    console.log("parse failed:", segment)
-                }
-            }
-        }
+        let struct_key = "dddddddbbbbQ";
 
-        incoming_buffer = buffer_split[buffer_split.length - 1]
+        let chunksize = struct.sizeOf(struct_key);
 
-        console.log("sending", incoming_parsed.length, "of data")
+        let [buffer_split, remaining] = sliceBuffer(chunksize, incoming_buffer);
+
+        incoming_buffer = remaining;
+
+        buffer_split.map(buf => {
+            let [q0, q1, q2, q3, a0, a1, a2, c0, c1, c2, c3, t] = struct.unpack(struct_key, buf)
+            incoming_parsed.push({
+                quaternion: [q0, q1, q2, q3],
+                linear_acceleration: [a0, a1, a2],
+                calibration_status: [c0, c1, c2, c3],
+                time: t
+            })
+        });
 
         broadcast_data(JSON.stringify(incoming_parsed))
+
+        console.log("sent", incoming_parsed.length, "data")
 
         incoming_parsed = []
     });

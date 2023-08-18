@@ -17,6 +17,8 @@ interface MyProps {
 interface MyState {
 }
 
+let remote_addr = 'ws://localhost:3001'
+
 class MyApp extends React.Component<MyProps, MyState> {
     websocket: WebSocket | undefined
     check_ws_timer: NodeJS.Timeout | undefined
@@ -28,12 +30,12 @@ class MyApp extends React.Component<MyProps, MyState> {
     }
 
     componentDidMount() {
-      this.websocket = new WebSocket('ws://localhost:3001')
+      this.websocket = new WebSocket(remote_addr)
 
       this.check_ws_timer = setInterval(() => {   
         if (this.websocket?.readyState === WebSocket.CLOSED) {
           console.log("reopening ws")
-          this.websocket = new WebSocket('ws://localhost:3001')
+          this.websocket = new WebSocket(remote_addr)
         }
       }, 1000);
 
@@ -42,7 +44,7 @@ class MyApp extends React.Component<MyProps, MyState> {
         let d: CommData[] = JSON.parse(e.data)
         let latest = d[0]
 
-        // obj?.setRotationFromQuaternion(new THREE.Quaternion(-latest.quaternion[1], latest.quaternion[0], latest.quaternion[2], -latest.quaternion[3]))
+        obj?.setRotationFromQuaternion(new THREE.Quaternion(-latest.quaternion[1], latest.quaternion[0], latest.quaternion[2], -latest.quaternion[3]))
 
         // obj?.position.add(new THREE.Vector3(...latest.linear_acceleration).divideScalar(10))
 

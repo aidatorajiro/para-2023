@@ -64,10 +64,10 @@ while True:
         for x in data:
             senddata += pack("dddddddbbbbQ", *(x[0] + x[1] + x[2] + (x[3],)))
         try:
-            sock.sendall(senddata + "\n")
+            sock.sendall(senddata)
         except OSError:
             sock = try_socket_forever()
-            sock.sendall(senddata + "\n")
+            sock.sendall(senddata)
         print(len(data))
         data = []
         t_all = 0
