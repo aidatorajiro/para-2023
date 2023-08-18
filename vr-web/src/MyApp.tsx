@@ -42,9 +42,9 @@ class MyApp extends React.Component<MyProps, MyState> {
         let d: CommData[] = JSON.parse(e.data)
         let latest = d[0]
 
-        obj?.setRotationFromQuaternion(new THREE.Quaternion(-latest.quaternion[1], latest.quaternion[0], latest.quaternion[2], -latest.quaternion[3]))
+        // obj?.setRotationFromQuaternion(new THREE.Quaternion(-latest.quaternion[1], latest.quaternion[0], latest.quaternion[2], -latest.quaternion[3]))
 
-        obj?.position.add(new THREE.Vector3(...latest.linear_acceleration).divideScalar(10))
+        // obj?.position.add(new THREE.Vector3(...latest.linear_acceleration).divideScalar(10))
 
         console.log(latest.linear_acceleration)
       })
