@@ -32,7 +32,7 @@ sock = try_socket_forever()
 
 
 
-i2c = bitbangio.I2C(board.GP1, board.GP0, frequency=400000, timeout=100000)
+i2c = bitbangio.I2C(board.GP1, board.GP0, frequency=5000, timeout=100000)
 sensor = adafruit_bno055.BNO055_I2C(i2c)
 
 data = []
@@ -68,7 +68,7 @@ while True:
         except OSError:
             sock = try_socket_forever()
             sock.sendall(senddata)
-        print(len(data))
+        # print(len(data))
         data = []
         t_all = 0
     
