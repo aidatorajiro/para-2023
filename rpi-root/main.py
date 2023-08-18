@@ -54,19 +54,20 @@ while True:
     try:
         data.append([sensor.quaternion,
                      sensor.linear_acceleration,
-                     sensor.calibration_status])
+                     sensor.calibration_status,
+                     time.monotonic_ns()])
     except Exception as e:
         print("err")
     
     if t_all > 100000000:
-        #senddata = b""
-        #for x in data:
-        #    senddata += pack("dddddddbbbbQ", *(x[0] + x[1] + x[2] + (x[3],)))
-        #try:
-        #    sock.sendall(senddata + "\n")
-        #except OSError:
-        #    sock = try_socket_forever()
-        #    sock.sendall(senddata + "\n")
+        senddata = b""
+        for x in data:
+            senddata += pack("dddddddbbbbQ", *(x[0] + x[1] + x[2] + (x[3],)))
+        try:
+            sock.sendall(senddata + "\n")
+        except OSError:
+            sock = try_socket_forever()
+            sock.sendall(senddata + "\n")
         print(len(data))
         data = []
         t_all = 0
