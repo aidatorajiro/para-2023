@@ -8,8 +8,6 @@ const app = express()
 app.use(express.json())
 
 
-//8080番ポートでサーバーを待ちの状態にする。
-//またサーバーが起動したことがわかるようにログを出力する
 app.listen(7677, () => {
   console.log("サーバー起動中");
 });

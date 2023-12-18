@@ -20,9 +20,8 @@
   },
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack -w",
-    "serve": "webpack serve"
+    "dev": "concurrently \"webpack serve\" \"node server-dev.js\"",
+    "prod": "webpack"
   },
   "dependencies": {
     "aframe": "^1.4.2",
