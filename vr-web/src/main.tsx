@@ -3,5 +3,5 @@ import MyApp from "./MyApp";
 
 ReactDOM.render(
     <MyApp/>,
-    document.getElementById('main')
+    document.body
 );

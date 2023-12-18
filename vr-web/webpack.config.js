@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
@@ -37,6 +38,11 @@ module.exports = {
       directory: path.join(__dirname, 'dist'),
     },
     compress: true,
-    port: 9000,
+    port: 7676,
+    allowedHosts: ["para.aidatorajiro.dev"],
+    proxy: {
+      '/api': 'http://localhost:7677/',
+    }
   },
+  plugins: [new HtmlWebpackPlugin({hash: true, template: 'index.html'})]
 };
