@@ -4,9 +4,13 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/websocket": "^1.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
     "concurrently": "^8.2.2",
     "css-loader": "^6.8.1",
     "css-modules-typescript-loader": "^4.0.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.2",
     "express": "^4.18.2",
     "html-webpack-plugin": "^5.5.4",
     "sass": "^1.65.1",
@@ -21,7 +25,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"webpack serve\" \"node server-dev.js\"",
-    "prod": "webpack"
+    "prod": "webpack",
+    "lint": "eslint"
   },
   "dependencies": {
     "aframe": "^1.4.2",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
 import {send_log} from './utils';
@@ -5,14 +6,31 @@ import {send_log} from './utils';
 const THREE = AFRAME.THREE
 
 const MyApp = function () {
-  let sceneRef = React.createRef();
-  let skullRef = React.createRef<AFRAME.Entity>();
-  let rightHandRef = React.createRef<AFRAME.Entity>();
-  let leftHandRef = React.createRef<AFRAME.Entity>();
-  let [sizeCoeffs, setSizeCoeffs] = useState<THREE.Vector3>(new THREE.Vector3(1, 1, 1));
-  let [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
-  let [rotOffset, setRotOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
-  let [caribrationA, setCaribrationA] = useState<boolean>(false);
+  const sceneRef = React.createRef();
+  const skullRef = React.createRef<AFRAME.Entity>();
+  const rightHandRef = React.createRef<AFRAME.Entity>();
+  const leftHandRef = React.createRef<AFRAME.Entity>();
+  const [sizeCoeffs, setSizeCoeffs] = useState<THREE.Vector3>(new THREE.Vector3(0.5, 0.5, 0.5));
+  const [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const [rotOffset, setRotOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const [caribrationA, setCaribrationA] = useState<boolean>(false);
+
+  useEffect(() => {
+    skullRef.current?.object3D.scale.set(sizeCoeffs.x, sizeCoeffs.y, sizeCoeffs.z);
+  }, [sizeCoeffs])
+
+  useEffect(() => {
+    const int = setInterval(() => {
+      const pos = leftHandRef.current?.object3D.position;
+      if (pos) {
+        skullRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
+      }
+    }, 1000/60)
+
+    return () => {
+      clearInterval(int)
+    }
+  }, [posOffset])
 
   useEffect(() => {
     let ended = false;
@@ -22,35 +40,27 @@ const MyApp = function () {
       events: {
         gripdown: function() {
           if (ended) { return }
+
           send_log({m: 'start calib A'})
           setCaribrationA(true)
         },
         gripup: function () {
           if (ended) { return }
+
           send_log({m: 'end calib A'})
           setCaribrationA(false)
         }
       }
     });
 
-    let int = setInterval(() => {
-      if (ended) { return }
-
-      let pos = leftHandRef.current?.object3D.position;
-      if (pos) {
-        skullRef.current?.object3D.position.set(pos.x, pos.y, pos.z);
-      }
-    }, 1000/60)
-
     return () => {
       ended = true;
-      clearInterval(int)
     }
   }, [])
 
   return(
           <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
-            <a-entity gltf-model="url(model.glb)" ref={skullRef} scale="0.4 0.4 0.4"></a-entity>
+            <a-entity gltf-model="url(model.glb)" ref={skullRef}></a-entity>
 
             <a-entity ref={rightHandRef}
               hand-controls="hand: right"

@@ -42,6 +42,9 @@ module.exports = {
     allowedHosts: ["para.aidatorajiro.dev"],
     proxy: {
       '/api': 'http://localhost:7677/',
+    },
+    client: {
+      webSocketURL: 'wss://para.aidatorajiro.dev/ws',
     }
   },
   plugins: [new HtmlWebpackPlugin({hash: true, template: 'index.html'})]

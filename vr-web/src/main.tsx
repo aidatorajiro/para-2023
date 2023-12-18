@@ -1,7 +1,7 @@
-import ReactDOM from "react-dom";
 import MyApp from "./MyApp";
+import { createRoot } from "react-dom/client";
 
-ReactDOM.render(
-    <MyApp/>,
+createRoot(
     document.body
-);
+// eslint-disable-next-line react/react-in-jsx-scope
+).render(<MyApp/>);
