@@ -25,12 +25,17 @@ const MyApp = function () {
       if (pos) {
         skullRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
       }
+
+      const rot = leftHandRef.current?.object3D.rotation;
+      if (rot) {
+        skullRef.current?.object3D.rotation.set(rot.x + rotOffset.x, rot.y + rotOffset.y, rot.z + rotOffset.z)
+      }
     }, 1000/60)
 
     return () => {
       clearInterval(int)
     }
-  }, [posOffset])
+  }, [posOffset, rotOffset])
 
   useEffect(() => {
     let ended = false;
