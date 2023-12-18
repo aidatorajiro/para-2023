@@ -22,25 +22,64 @@ const MyApp = function () {
   const rightHandRef = React.useRef<AFRAME.Entity>();
   const leftHandRef = React.useRef<AFRAME.Entity>();
 
-  const lastPosRef = React.useRef<THREE.Vector3>();
-  const lastRotRef = React.useRef<THREE.Euler>();
+  const [posHistory, setPosHistory] = React.useState<THREE.Vector3[]>([]);
+  const [rotHistory, setRotHistory] = React.useState<THREE.Euler[]>([]);
   useEffect(() => {
     const int = setInterval(() => {
-      if (calibrationTrigger) {
-        const lastPos = lastPosRef.current;
-        const currentPos = rightHandRef.current?.object3D.position;
-        if (lastPos === undefined) {
-          lastPosRef.current = currentPos;
-        } else if (currentPos !== undefined) {
-          const diff = currentPos.clone().sub(lastPos);
-          send_log({message: "calib pos diff", diff, currentPos, lastPos})
-          setPosOffset(x => x.clone().add(diff.multiplyScalar(COEFF_CALIB_POS)))
-          lastPosRef.current = currentPos
+      if (calibrationGrip || calibrationTrigger || calibrationA) {
+        const currentPos = rightHandRef.current?.object3D.position.clone();
+        if (currentPos) {
+          setPosHistory(x => [...x, currentPos]);
         }
-      }
 
+        const currentRot = rightHandRef.current?.object3D.rotation.clone();
+        if (currentRot) {
+          setRotHistory(x => [...x, currentRot]);
+        }
+      } else if (posHistory.length > 0 || rotHistory.length > 0) {
+        setPosHistory([])
+        setRotHistory([])
+      }
+    }, 1000/60)
+
+    return () => {
+      clearInterval(int)
+    }
+  }, [calibrationGrip, calibrationTrigger, calibrationA])
+
+  useEffect(() => {
+    if (calibrationTrigger) {
+      if (posHistory.length > 2) {
+        const newdata = posHistory[posHistory.length - 1]
+        const olddata = posHistory[posHistory.length - 2]
+        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
+        setPosOffset(x => x.clone().add(diff))
+      }
+    }
+    if (calibrationGrip) {
+      if (rotHistory.length > 2) {
+        const newdata = rotHistory[rotHistory.length - 1]
+        const olddata = rotHistory[rotHistory.length - 2]
+        const diff = [
+          (newdata.x - olddata.x) * COEFF_CALIB_ROT,
+          (newdata.y - olddata.y) * COEFF_CALIB_ROT,
+          (newdata.z - olddata.z) * COEFF_CALIB_ROT
+        ];
+        setRotOffset(obj => new THREE.Euler(obj.x + diff[0], obj.y + diff[1], obj.z + diff[2]))
+      }
+    }
+    if (calibrationA) {
+      if (posHistory.length > 2) {
+        const newdata = posHistory[posHistory.length - 1]
+        const olddata = posHistory[posHistory.length - 2]
+        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
+        setSizeCoeffs(x => x.clone().add(diff))
+      }
+    }
+  }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory, rotHistory])
+
+      /*
       if (calibrationGrip) {
-        const lastRot = lastRotRef.current;
         const currentRot = rightHandRef.current?.object3D.rotation;
         if (lastRot === undefined) {
           lastRotRef.current = currentRot;
@@ -56,7 +95,6 @@ const MyApp = function () {
       }
 
       if (calibrationA) {
-        const lastPos = lastPosRef.current;
         const currentPos = rightHandRef.current?.object3D.position;
         if (lastPos === undefined) {
           lastPosRef.current = currentPos;
@@ -65,13 +103,7 @@ const MyApp = function () {
           send_log({message: "calib size diff", diff})
           setSizeCoeffs(x => x.clone().add(diff.multiplyScalar(COEFF_CALIB_POS)))
         }
-      }
-    }, 1000/10)
-
-    return () => {
-      clearInterval(int)
-    }
-  }, [calibrationTrigger, calibrationGrip, calibrationA])
+      }*/
 
   useEffect(() => {
     skullRef.current?.object3D.scale.set(sizeCoeffs.x, sizeCoeffs.y, sizeCoeffs.z);
