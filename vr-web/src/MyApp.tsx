@@ -10,7 +10,7 @@ const MyApp = function () {
   const COEFF_CALIB_ROT = 0.33;
   const COEFF_CALIB_SIZE = 0.33;
 
-  const [sizeCoeffs, setSizeCoeffs] = useState<THREE.Vector3>(new THREE.Vector3(0.5, 0.5, 0.5));
+  const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
   const [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const [rotOffset, setRotOffset] = useState<THREE.Euler>(new THREE.Euler(0, 0, 0, THREE.Euler.DEFAULT_ORDER));
   const [calibrationGrip, setCalibrationGrip] = useState<boolean>(false);
@@ -72,8 +72,14 @@ const MyApp = function () {
       if (posHistory.length > 2) {
         const newdata = posHistory[posHistory.length - 1]
         const olddata = posHistory[posHistory.length - 2]
-        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
-        setSizeCoeffs(x => x.clone().add(diff))
+        const skullPos = skullRef.current?.object3D.position;
+        if (skullPos) {
+          const normal = rightHandRef.current?.object3D.position.clone().sub(skullPos).normalize();
+          if (normal) {
+            const diff = newdata.clone().sub(olddata).dot(normal);
+            setSizeCoeff(x => x + diff)
+          }
+        }
       }
     }
   }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory, rotHistory])
@@ -106,8 +112,8 @@ const MyApp = function () {
       }*/
 
   useEffect(() => {
-    skullRef.current?.object3D.scale.set(sizeCoeffs.x, sizeCoeffs.y, sizeCoeffs.z);
-  }, [sizeCoeffs])
+    skullRef.current?.object3D.scale.set(sizeCoeff, sizeCoeff, sizeCoeff);
+  }, [sizeCoeff])
 
   useEffect(() => {
     const int = setInterval(() => {
