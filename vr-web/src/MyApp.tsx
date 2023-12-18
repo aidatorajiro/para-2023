@@ -33,7 +33,9 @@ const MyApp = function () {
           lastPosRef.current = currentPos;
         } else if (currentPos !== undefined) {
           const diff = currentPos.clone().sub(lastPos);
+          send_log({message: "calib pos diff", diff, currentPos, lastPos})
           setPosOffset(x => x.clone().add(diff.multiplyScalar(COEFF_CALIB_POS)))
+          lastPosRef.current = currentPos
         }
       }
 
@@ -48,6 +50,7 @@ const MyApp = function () {
             currentRot.y - lastRot.y, 
             currentRot.z - lastRot.z
           ];
+          send_log({message: "calib rot diff", diff})
           setRotOffset(obj => new THREE.Euler(obj.x + diff[0], obj.y + diff[1], obj.z + + diff[2], THREE.Euler.DEFAULT_ORDER))
         }
       }
@@ -59,10 +62,11 @@ const MyApp = function () {
           lastPosRef.current = currentPos;
         } else if (currentPos !== undefined) {
           const diff = currentPos.clone().sub(lastPos);
+          send_log({message: "calib size diff", diff})
           setSizeCoeffs(x => x.clone().add(diff.multiplyScalar(COEFF_CALIB_POS)))
         }
       }
-    }, 1000/60)
+    }, 1000/10)
 
     return () => {
       clearInterval(int)
@@ -92,46 +96,41 @@ const MyApp = function () {
   }, [posOffset, rotOffset])
 
   useEffect(() => {
-    let ended = false;
-
-    AFRAME.registerComponent('vr-calib', {
-      init: function () { },
-      events: {
+    const eventfuncs = {
         gripdown: function() {
-          if (ended) { return }
           send_log({message: 'start calib (Grip)'})
           setCalibrationGrip(true)
         },
         gripup: function () {
-          if (ended) { return }
           send_log({message: 'end calib (Grip)'})
           setCalibrationGrip(false)
         },
         triggerdown: function () {
-          if (ended) { return }
           send_log({message: 'start calib (Trigger)'})
           setCalibrationTrigger(true)
         },
         triggerup: function () {
-          if (ended) { return }
           send_log({message: 'end calib (Trigger)'})
           setCalibrationTrigger(false)
         },
         abuttondown: function () {
-          if (ended) { return }
           send_log({message: 'start calib (A)'})
           setCalibrationA(true)
         },
         abuttonup: function () {
-          if (ended) { return }
           send_log({message: 'end calib (A)'})
           setCalibrationA(false)
         }
-      }
-    });
+    }
+
+    for (const funcname in eventfuncs) {
+      rightHandRef.current?.addEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
+    }
 
     return () => {
-      ended = true;
+      for (const funcname in eventfuncs) {
+        rightHandRef.current?.removeEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
+      } 
     }
   }, [])
 
