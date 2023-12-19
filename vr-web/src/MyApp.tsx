@@ -158,7 +158,18 @@ const MyApp = function () {
         abuttonup: function () {
           send_log({message: 'end calib (A)'})
           setCalibrationA(false)
-        }
+        },
+	bbuttonup: function () {
+	  const left = leftHandRef.current?.object3D;
+	  const chil = leftHandRef.current?.object3D.children[0];
+	  if (chil && left) {
+	    const diff = rightHandRef.current?.object3D.position.clone().sub(left.position);
+	    if (diff) {
+	      chil.position.sub(diff);
+	      setPosOffset(x => x.clone().add(diff));
+	    }
+	  }
+	}
     }
 
     for (const funcname in eventfuncs) {
@@ -173,21 +184,23 @@ const MyApp = function () {
   }, [])
 
   return(
-          <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
-            <a-entity gltf-model="url(model.glb)" ref={skullRef}></a-entity>
+<a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
+  <a-entity gltf-model="url(model.glb)" ref={skullRef}></a-entity>
 
-            <a-entity ref={rightHandRef}
+  <a-entity ref={rightHandRef}
               hand-controls="hand: right"
               laser-controls="hand: right"
               oculus-touch-controls="hand: right"
               vr-calib></a-entity>
-            
-            <a-entity ref={leftHandRef}
+
+  <a-entity ref={leftHandRef}>
+    <a-entity
               hand-controls="hand: left"
               laser-controls="hand: left"
               oculus-touch-controls="hand: left"
               ></a-entity>
-          </a-scene>
+  </a-entity>
+</a-scene>
   );
 }
 
