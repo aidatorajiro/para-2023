@@ -84,33 +84,6 @@ const MyApp = function () {
     }
   }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory, rotHistory])
 
-      /*
-      if (calibrationGrip) {
-        const currentRot = rightHandRef.current?.object3D.rotation;
-        if (lastRot === undefined) {
-          lastRotRef.current = currentRot;
-        } else if (currentRot !== undefined) {
-          const diff = [
-            currentRot.x - lastRot.x,
-            currentRot.y - lastRot.y, 
-            currentRot.z - lastRot.z
-          ];
-          send_log({message: "calib rot diff", diff})
-          setRotOffset(obj => new THREE.Euler(obj.x + diff[0], obj.y + diff[1], obj.z + + diff[2], THREE.Euler.DEFAULT_ORDER))
-        }
-      }
-
-      if (calibrationA) {
-        const currentPos = rightHandRef.current?.object3D.position;
-        if (lastPos === undefined) {
-          lastPosRef.current = currentPos;
-        } else if (currentPos !== undefined) {
-          const diff = currentPos.clone().sub(lastPos);
-          send_log({message: "calib size diff", diff})
-          setSizeCoeffs(x => x.clone().add(diff.multiplyScalar(COEFF_CALIB_POS)))
-        }
-      }*/
-
   useEffect(() => {
     skullRef.current?.object3D.scale.set(sizeCoeff, sizeCoeff, sizeCoeff);
   }, [sizeCoeff])
@@ -160,12 +133,12 @@ const MyApp = function () {
         setCalibrationA(false)
       },
       bbuttonup: function () {
-        const left = leftHandRef.current?.object3D;
-        const chil = leftHandRef.current?.object3D.children[0];
-        if (chil && left) {
-          const diff = rightHandRef.current?.object3D.position.clone().sub(left.position);
+        const wrapper = skullRef.current?.object3D;
+        const model   = skullRef.current?.object3D.children[0];
+        if (model && wrapper) {
+          const diff = rightHandRef.current?.object3D.position.clone().sub(wrapper.position);
           if (diff) {
-            chil.position.sub(diff);
+            model.position.sub(diff);
             setPosOffset(x => x.clone().add(diff));
           }
         }
@@ -185,19 +158,19 @@ const MyApp = function () {
 
   return(
     <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
-      <a-entity gltf-model="url(model.glb)" ref={skullRef}></a-entity>
+      <a-entity ref={skullRef}>
+        <a-entity gltf-model="url(model.glb)"></a-entity>
+      </a-entity>
       <a-entity ref={rightHandRef}
         hand-controls="hand: right"
         laser-controls="hand: right"
         oculus-touch-controls="hand: right"
         vr-calib></a-entity>
-      <a-entity ref={leftHandRef}>
-        <a-entity
-          hand-controls="hand: left"
-          laser-controls="hand: left"
-          oculus-touch-controls="hand: left"
-          ></a-entity>
-      </a-entity>
+      <a-entity  ref={leftHandRef}
+        hand-controls="hand: left"
+        laser-controls="hand: left"
+        oculus-touch-controls="hand: left"
+        ></a-entity>
     </a-scene>
   );
 }
