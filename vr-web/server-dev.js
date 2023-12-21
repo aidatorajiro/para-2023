@@ -27,7 +27,7 @@ app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
     fs.copyFileSync(req.files.glbfile.path, __dirname + '/dist/model.glb')
   }
-  res.json({ok: 'ok'})
+  res.sendFile(__dirname + '/api_interface/success.html')
 })
 
 app.use('/api/interface', express.static(__dirname + '/api_interface'))
