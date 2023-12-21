@@ -12,27 +12,29 @@ const MyApp = function () {
 
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
   const [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
-  const [rotOffset, setRotOffset] = useState<THREE.Euler>(new THREE.Euler(0, 0, 0, THREE.Euler.DEFAULT_ORDER));
+  const [rotOffset, setRotOffset] = useState<THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
   const [calibrationGrip, setCalibrationGrip] = useState<boolean>(false);
   const [calibrationTrigger, setCalibrationTrigger] = useState<boolean>(false);
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
+  const [calibrationB, setCalibrationB] = useState<boolean>(false);
 
+  const sphereRef = React.useRef<AFRAME.Entity>();
   const sceneRef = React.useRef<AFRAME.Scene>();
   const skullRef = React.useRef<AFRAME.Entity>();
   const rightHandRef = React.useRef<AFRAME.Entity>();
   const leftHandRef = React.useRef<AFRAME.Entity>();
 
   const [posHistory, setPosHistory] = React.useState<THREE.Vector3[]>([]);
-  const [rotHistory, setRotHistory] = React.useState<THREE.Euler[]>([]);
+  const [rotHistory, setRotHistory] = React.useState<THREE.Quaternion[]>([]);
   useEffect(() => {
     const int = setInterval(() => {
-      if (calibrationGrip || calibrationTrigger || calibrationA) {
+      if (calibrationGrip || calibrationTrigger || calibrationA || calibrationB) {
         const currentPos = rightHandRef.current?.object3D.position.clone();
         if (currentPos) {
           setPosHistory(x => [...x, currentPos]);
         }
 
-        const currentRot = rightHandRef.current?.object3D.rotation.clone();
+        const currentRot = rightHandRef.current?.object3D.quaternion.clone();
         if (currentRot) {
           setRotHistory(x => [...x, currentRot]);
         }
@@ -45,7 +47,7 @@ const MyApp = function () {
     return () => {
       clearInterval(int)
     }
-  }, [calibrationGrip, calibrationTrigger, calibrationA])
+  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB])
 
   useEffect(() => {
     if (calibrationTrigger) {
@@ -58,15 +60,19 @@ const MyApp = function () {
     }
     if (calibrationGrip) {
       if (rotHistory.length > 2) {
-        const newdata = rotHistory[rotHistory.length - 1]
-        const olddata = rotHistory[rotHistory.length - 2]
-        const diff = [
-          (newdata.x - olddata.x) * COEFF_CALIB_ROT,
-          (newdata.y - olddata.y) * COEFF_CALIB_ROT,
-          (newdata.z - olddata.z) * COEFF_CALIB_ROT
-        ];
-        setRotOffset(obj => new THREE.Euler(obj.x + diff[0], obj.y + diff[1], obj.z + diff[2]))
+        const newdata = posHistory[posHistory.length - 1]
+        const olddata = posHistory[posHistory.length - 2]
+        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
+        const chil = skullRef.current?.object3D.children[0];
+        if (chil) {
+          chil.position.add(diff)
+        }
       }
+    }
+    if (calibrationB) {
+      const newdata = rotHistory[rotHistory.length - 1]
+      // const olddata = rotHistory[rotHistory.length - 2]
+      setRotOffset(obj => newdata.clone())
     }
     if (calibrationA) {
       if (posHistory.length > 2) {
@@ -93,11 +99,13 @@ const MyApp = function () {
       const pos = leftHandRef.current?.object3D.position;
       if (pos) {
         skullRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
+        sphereRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
       }
 
-      const rot = leftHandRef.current?.object3D.rotation;
+      const rot = leftHandRef.current?.object3D.quaternion;
       if (rot) {
-        skullRef.current?.object3D.rotation.set(rot.x + rotOffset.x, rot.y + rotOffset.y, rot.z + rotOffset.z)
+        let r = rot.clone();
+        skullRef.current?.object3D.quaternion.set(r.x, r.y, r.z, r.w).multiply(rotOffset);
       }
     }, 1000/60)
 
@@ -108,7 +116,7 @@ const MyApp = function () {
 
   useEffect(() => {
     const eventfuncs = {
-      gripdown: function() {
+      gripdown: function() { // pos global
         send_log({message: 'start calib (Grip)'})
         setCalibrationGrip(true)
       },
@@ -116,7 +124,7 @@ const MyApp = function () {
         send_log({message: 'end calib (Grip)'})
         setCalibrationGrip(false)
       },
-      triggerdown: function () {
+      triggerdown: function () { // pos local
         send_log({message: 'start calib (Trigger)'})
         setCalibrationTrigger(true)
       },
@@ -124,7 +132,7 @@ const MyApp = function () {
         send_log({message: 'end calib (Trigger)'})
         setCalibrationTrigger(false)
       },
-      abuttondown: function () {
+      abuttondown: function () { // scale
         send_log({message: 'start calib (A)'})
         setCalibrationA(true)
       },
@@ -132,6 +140,15 @@ const MyApp = function () {
         send_log({message: 'end calib (A)'})
         setCalibrationA(false)
       },
+      bbuttondown: function () { // rotation
+        send_log({message: 'start calib (B)'})
+        setCalibrationB(true)
+      },
+      bbuttonup: function () {
+        send_log({message: 'end calib (B)'})
+        setCalibrationB(false)
+      },
+      /*
       bbuttonup: function () {
         const wrapper = skullRef.current?.object3D;
         const model   = skullRef.current?.object3D.children[0];
@@ -139,10 +156,10 @@ const MyApp = function () {
           const diff = rightHandRef.current?.object3D.position.clone().sub(wrapper.position);
           if (diff) {
             model.position.sub(diff);
-            setPosOffset(x => x.clone().add(diff));
+            // setPosOffset(x => x.clone().add(diff));
           }
         }
-      }
+      }*/
     }
 
     for (const funcname in eventfuncs) {
@@ -161,6 +178,7 @@ const MyApp = function () {
       <a-entity ref={skullRef}>
         <a-entity gltf-model="url(model.glb)"></a-entity>
       </a-entity>
+      <a-sphere ref={sphereRef} color="#f00" radius="0.01"></a-sphere>
       <a-entity ref={rightHandRef}
         hand-controls="hand: right"
         laser-controls="hand: right"
