@@ -21,11 +21,15 @@ app.post('/api/log', function (req, res) {
 
 const fs = require('fs')
 
+const AdmZip = require("adm-zip");
+
 app.use('/api/upload_glb', expressFormData.parse({uploadDir: __dirname + '/uploads'}));
 
 app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
-    fs.copyFileSync(req.files.glbfile.path, __dirname + '/dist/model.glb')
+    const zip = new AdmZip(req.files.glbfile.path)
+    const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/))[0].getData()
+    fs.writeSync(data, __dirname + '/dist/model.glb')
   }
   res.sendFile(__dirname + '/api_interface/success.html')
 })
