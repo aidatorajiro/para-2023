@@ -191,16 +191,12 @@ const MyApp = function () {
       <a-entity ref={skullRef}>
         <a-entity gltf-model="url(model.glb)"></a-entity>
       </a-entity>
-      <a-sphere ref={sphereRef} color="#f00" radius="0.01"></a-sphere>
+      <a-sphere ref={sphereRef} color="#f5c0b3" radius="0.008"></a-sphere>
       <a-entity ref={rightHandRef}
-        hand-controls="hand: right"
-        laser-controls="hand: right"
         oculus-touch-controls="hand: right"
         vr-calib></a-entity>
-      <a-entity  ref={leftHandRef}
-        hand-controls="hand: left"
-        laser-controls="hand: left"
-        oculus-touch-controls="hand: left"
+      <a-entity ref={leftHandRef}
+        oculus-touch-controls="hand: left; model: false;"
         ></a-entity>
     </a-scene>
   );
