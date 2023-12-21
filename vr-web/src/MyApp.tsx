@@ -101,10 +101,15 @@ const MyApp = function () {
 
   useEffect(() => {
     const int = setInterval(() => {
-      const pos = leftHandRef.current?.object3D.position;
-      if (pos) {
-        skullRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
-        sphereRef.current?.object3D.position.set(pos.x + posOffset.x, pos.y + posOffset.y, pos.z + posOffset.z);
+      const leftobj = leftHandRef.current?.object3D;
+      if (leftobj) {
+        const pos = leftobj.position;
+        let posOffset_converted = posOffset.clone().applyQuaternion(leftobj.quaternion);
+        let skullPos = skullRef.current?.object3D.position
+          .set(pos.x + posOffset_converted.x, pos.y + posOffset_converted.y, pos.z + posOffset_converted.z);
+        if (skullPos) {
+          sphereRef.current?.object3D.position.set(skullPos.x, skullPos.y, skullPos.z);
+        }
       }
 
       const rot = leftHandRef.current?.object3D.quaternion;

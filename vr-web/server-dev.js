@@ -21,7 +21,7 @@ app.post('/api/log', function (req, res) {
 
 const fs = require('fs')
 
-app.use('/api/upload_glb', expressFormData.parse({uploadDir: __dirname + '/uploads', autoClean: true}));
+app.use('/api/upload_glb', expressFormData.parse({uploadDir: __dirname + '/uploads'}));
 
 app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
