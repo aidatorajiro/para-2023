@@ -29,7 +29,7 @@ app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
     const zip = new AdmZip(req.files.glbfile.path)
     const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/))[0].getData()
-    fs.writeSync(data, __dirname + '/dist/model.glb')
+    fs.writeFileSync(__dirname + '/dist/model.glb', data)
   }
   res.sendFile(__dirname + '/api_interface/success.html')
 })
