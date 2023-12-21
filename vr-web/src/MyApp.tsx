@@ -65,7 +65,7 @@ const MyApp = function () {
       if (posHistory.length > 2) {
         const newdata = posHistory[posHistory.length - 1]
         const olddata = posHistory[posHistory.length - 2]
-        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
+        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS).divideScalar(sizeCoeff)
         const wrapper = skullRef.current?.object3D;
         const model = wrapper?.children[0];
         if (model) {
