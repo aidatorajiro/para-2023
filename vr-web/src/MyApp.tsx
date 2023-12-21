@@ -8,7 +8,7 @@ const THREE = AFRAME.THREE
 const MyApp = function () {
   const COEFF_CALIB_POS = 0.33;
   const COEFF_CALIB_ROT = 0.33;
-  const COEFF_CALIB_SIZE = 0.33;
+  const COEFF_CALIB_SIZE = 1.0;
 
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
   const [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
@@ -76,7 +76,7 @@ const MyApp = function () {
         if (skullPos) {
           const normal = rightHandRef.current?.object3D.position.clone().sub(skullPos).normalize();
           if (normal) {
-            const diff = newdata.clone().sub(olddata).dot(normal);
+            const diff = newdata.clone().sub(olddata).dot(normal) * COEFF_CALIB_SIZE;
             setSizeCoeff(x => x + diff)
           }
         }
