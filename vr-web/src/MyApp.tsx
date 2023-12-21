@@ -59,20 +59,25 @@ const MyApp = function () {
       }
     }
     if (calibrationGrip) {
-      if (rotHistory.length > 2) {
+      if (posHistory.length > 2) {
         const newdata = posHistory[posHistory.length - 1]
         const olddata = posHistory[posHistory.length - 2]
         const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
-        const chil = skullRef.current?.object3D.children[0];
-        if (chil) {
-          chil.position.add(diff)
+        const wrapper = skullRef.current?.object3D;
+        const model = wrapper?.children[0];
+        if (model) {
+          model.position.add(diff.applyQuaternion(wrapper.quaternion.clone().invert()))
         }
       }
     }
     if (calibrationB) {
-      const newdata = rotHistory[rotHistory.length - 1]
-      // const olddata = rotHistory[rotHistory.length - 2]
-      setRotOffset(obj => newdata.clone())
+      if (rotHistory.length > 2) {
+        const newdata = rotHistory[rotHistory.length - 1]
+        const olddata = rotHistory[rotHistory.length - 2]
+        const diff = newdata.clone().multiply(olddata.clone().invert())
+        // setRotOffset(obj => obj.clone().multiply(diff))
+        setRotOffset(obj => newdata.clone())
+      }
     }
     if (calibrationA) {
       if (posHistory.length > 2) {
