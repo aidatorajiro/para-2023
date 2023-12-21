@@ -55,7 +55,10 @@ const MyApp = function () {
         const newdata = posHistory[posHistory.length - 1]
         const olddata = posHistory[posHistory.length - 2]
         const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
-        setPosOffset(x => x.clone().add(diff))
+        const leftobj = leftHandRef.current?.object3D;
+        if (leftobj) {
+          setPosOffset(x => x.clone().add(diff.applyQuaternion(leftobj.quaternion.clone().invert())))
+        }
       }
     }
     if (calibrationGrip) {
