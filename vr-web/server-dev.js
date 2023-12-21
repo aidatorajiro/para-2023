@@ -31,7 +31,7 @@ app.post('/api/upload_glb', function (req, res) {
     const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/))[0].getData()
     fs.writeFileSync(__dirname + '/dist/model.glb', data)
   }
-  res.sendFile(__dirname + '/api_interface/success.html')
+  res.redirect('/api/interface/success.html')
 })
 
 app.use('/api/interface', express.static(__dirname + '/api_interface'))
