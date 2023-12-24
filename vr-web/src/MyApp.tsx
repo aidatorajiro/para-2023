@@ -108,10 +108,7 @@ const MyApp = function () {
         const newdata = rotHistory[rotHistory.length - 1]
         //const olddata = rotHistory[rotHistory.length - 2]
         //const diff = newdata.clone().multiply(olddata.clone().invert())
-        const rot = leftHandRef.current?.object3D.quaternion;
-        if (rot) {
-          setRotOffset(obj => newdata.clone().multiply(rot.clone().invert()))
-        }
+        setRotOffset(newdata.clone())
       }
     }
     if (calibrationA) {
@@ -155,7 +152,7 @@ const MyApp = function () {
 
       const rot = leftHandRef.current?.object3D.quaternion;
       if (rot) {
-        let r = rot.clone();
+        const r = rot.clone();
         skullRef.current?.object3D.quaternion.set(r.x, r.y, r.z, r.w).multiply(rotOffset);
       }
     }, 1000/60)
