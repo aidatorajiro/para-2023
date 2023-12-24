@@ -23,15 +23,28 @@ const fs = require('fs')
 
 const AdmZip = require("adm-zip");
 
+const crypto = require('crypto')
+
+let modelFileName;
+if (fs.existsSync(__dirname + '/dist/latest.txt')) {
+  modelFileName = fs.readFileSync(__dirname + '/dist/latest.txt')
+}
+
 app.use('/api/upload_glb', expressFormData.parse({uploadDir: __dirname + '/uploads'}));
 
 app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
     const zip = new AdmZip(req.files.glbfile.path)
     const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/))[0].getData()
-    fs.writeFileSync(__dirname + '/dist/model.glb', data)
+    const filename = Math.floor((new Date()).getTime().toString() / 1000) + '_' + crypto.createHash('sha256').update(data).digest('hex').substring(0, 6) + '.glb'
+    fs.writeFileSync(__dirname + '/dist/' + filename, data)
+    fs.writeFileSync(__dirname + '/dist/latest.txt', filename)
   }
   res.redirect('/api/interface/success.html')
 })
 
 app.use('/api/interface', express.static(__dirname + '/api_interface'))
+
+app.get('/api/get_glb_filename', function (req, res) {
+  res.send({filename: fs.readFileSync(__dirname + '/dist/latest.txt').toString()})
+})

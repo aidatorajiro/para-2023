@@ -17,6 +17,7 @@ const MyApp = function () {
   const [calibrationTrigger, setCalibrationTrigger] = useState<boolean>(false);
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
   const [calibrationB, setCalibrationB] = useState<boolean>(false);
+  const [glbFileName, setGlbFileName] = useState<string>("model.glb");
 
   const sphereRef = React.useRef<AFRAME.Entity>();
   const sceneRef = React.useRef<AFRAME.Scene>();
@@ -24,6 +25,32 @@ const MyApp = function () {
   const rightHandRef = React.useRef<AFRAME.Entity>();
   const leftHandRef = React.useRef<AFRAME.Entity>();
 
+  //
+  // Retrieve GLB filename
+  //
+  useEffect(() => {
+    let end = false;
+
+    const int = setInterval(async () => {
+      const data = await fetch('/api/get_glb_filename');
+      if (end) { return; }
+      const filename = (await data.json())['filename'];
+      if (end) { return; }
+      if (filename !== glbFileName) {
+        setGlbFileName(filename)
+      }
+    }, 5000)
+
+    return () => {
+      end = true;
+      clearInterval(int)
+    }
+  }, [glbFileName])
+
+  
+  //
+  // Construct Position and Rotation History
+  //
   const [posHistory, setPosHistory] = React.useState<THREE.Vector3[]>([]);
   const [rotHistory, setRotHistory] = React.useState<THREE.Quaternion[]>([]);
   useEffect(() => {
@@ -49,6 +76,9 @@ const MyApp = function () {
     }
   }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB])
 
+  //
+  // Calculate calibration values from position / rotation history of right hand controller
+  //
   useEffect(() => {
     if (calibrationTrigger) {
       if (posHistory.length > 2) {
@@ -96,12 +126,18 @@ const MyApp = function () {
         }
       }
     }
-  }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory, rotHistory])
+  }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory])
 
+  //
+  // Sync size of face GLB model with calibration value
+  //
   useEffect(() => {
     skullRef.current?.object3D.scale.set(sizeCoeff, sizeCoeff, sizeCoeff);
   }, [sizeCoeff])
 
+  //
+  // Calculate rotation and position of face GLB model
+  //
   useEffect(() => {
     const int = setInterval(() => {
       const leftobj = leftHandRef.current?.object3D;
@@ -127,6 +163,9 @@ const MyApp = function () {
     }
   }, [posOffset, rotOffset])
 
+  //
+  // Register events
+  //
   useEffect(() => {
     const eventfuncs = {
       gripdown: function() { // pos global
@@ -189,7 +228,7 @@ const MyApp = function () {
   return(
     <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
       <a-entity ref={skullRef}>
-        <a-entity gltf-model="url(model.glb)"></a-entity>
+        <a-entity gltf-model={"url(" + glbFileName + ")"}></a-entity>
       </a-entity>
       <a-sphere ref={sphereRef} color="#f5c0b3" radius="0.008"></a-sphere>
       <a-entity ref={rightHandRef}
