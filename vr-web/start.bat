@@ -1,1 +1,1 @@
-npx yarn dev
+npx yarn prod

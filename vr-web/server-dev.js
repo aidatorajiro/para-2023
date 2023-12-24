@@ -3,7 +3,12 @@ const express = require('express')
 const expressFormData = require('express-form-data');
 const path = require('path')
 
-const PORTNUM = 7677
+let PORTNUM;
+if (process.env.NODE_ENV === 'development') {
+  PORTNUM = 7677
+} else if (process.env.NODE_ENV === 'production') {
+  PORTNUM = 7676
+}
 
 //expressのインスタンス化
 const app = express()
@@ -48,3 +53,5 @@ app.use('/api/interface', express.static(__dirname + '/api_interface'))
 app.get('/api/get_glb_filename', function (req, res) {
   res.send({filename: fs.readFileSync(__dirname + '/dist/latest.txt').toString()})
 })
+
+app.use('/', express.static(__dirname + '/dist'))
