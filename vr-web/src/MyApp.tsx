@@ -106,10 +106,12 @@ const MyApp = function () {
     if (calibrationB) {
       if (rotHistory.length > 2) {
         const newdata = rotHistory[rotHistory.length - 1]
-        const olddata = rotHistory[rotHistory.length - 2]
-        const diff = newdata.clone().multiply(olddata.clone().invert())
-        // setRotOffset(obj => obj.clone().multiply(diff))
-        setRotOffset(obj => newdata.clone())
+        //const olddata = rotHistory[rotHistory.length - 2]
+        //const diff = newdata.clone().multiply(olddata.clone().invert())
+        const rot = leftHandRef.current?.object3D.quaternion;
+        if (rot) {
+          setRotOffset(obj => newdata.clone().multiply(rot.clone().invert()))
+        }
       }
     }
     if (calibrationA) {
