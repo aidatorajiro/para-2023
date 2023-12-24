@@ -228,7 +228,7 @@ const MyApp = function () {
   return(
     <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
       <a-entity ref={skullRef}>
-        <a-entity gltf-model={"url(" + glbFileName + ")"}></a-entity>
+        <a-entity gltf-model={glbFileName}></a-entity>
       </a-entity>
       <a-sphere ref={sphereRef} color="#f5c0b3" radius="0.008"></a-sphere>
       <a-entity ref={rightHandRef}
