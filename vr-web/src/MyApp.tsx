@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
 import {send_log} from './utils';
+import tf from '@tensorflow/tfjs';
 
 const THREE = AFRAME.THREE
 
@@ -108,7 +109,21 @@ const MyApp = function () {
         const newdata = rotHistory[rotHistory.length - 1]
         //const olddata = rotHistory[rotHistory.length - 2]
         //const diff = newdata.clone().multiply(olddata.clone().invert())
-        setRotOffset(newdata.clone())
+        const m = (new THREE.Matrix4().identity());
+        const m2 = (new THREE.Matrix4().identity());
+        const lef = leftHandRef.current?.object3D.quaternion;
+        if (lef) {
+          m.makeRotationFromQuaternion(lef)
+          m2.makeRotationFromQuaternion(rotOffset)
+          const t = tf.tensor2d(m.elements, [4, 4])
+          const f = (x: tf.Tensor<tf.Rank>) => t.dot(x)
+          const g = tf.grad(f)
+          const h = g(tf.tensor2d(m2.elements, [4, 4]))
+          const hi = h.pow(-1)
+          const hia = hi.arraySync()
+          send_log(hia)
+          setRotOffset(newdata.clone())
+        }
       }
     }
     if (calibrationA) {
