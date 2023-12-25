@@ -110,6 +110,11 @@ const MyApp = function () {
         const diff = newdata.clone().multiply(olddata.clone().invert())
         const skullquat = skullRef.current?.object3D.quaternion;
         if (skullquat) {
+          // Easy linear algebra!
+          // Skull' / Skull = Diff_Right
+          // (Skull . Diff_Skull) / Skull = Diff_Right
+          // Diff_Skull / Skull = Skull^(-1) . Diff_Right
+          // Diff_Skull = Skull^(-1) . Diff_Right . Skull
           const diff_converted = skullquat.clone().invert().multiply(diff).multiply(skullquat);
           setRotOffset(x => x.clone().multiply(diff_converted))
         }
