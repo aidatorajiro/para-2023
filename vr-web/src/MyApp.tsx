@@ -106,9 +106,9 @@ const MyApp = function () {
     if (calibrationB) {
       if (rotHistory.length > 2) {
         const newdata = rotHistory[rotHistory.length - 1]
-        //const olddata = rotHistory[rotHistory.length - 2]
-        //const diff = newdata.clone().multiply(olddata.clone().invert())
-        setRotOffset(newdata.clone())
+        const olddata = rotHistory[rotHistory.length - 2]
+        const diff = newdata.clone().multiply(olddata.clone().invert())
+        setRotOffset(x => x.clone().multiply(diff))
       }
     }
     if (calibrationA) {
