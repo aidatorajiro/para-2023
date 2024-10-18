@@ -39,12 +39,12 @@ module.exports = {
     },
     compress: true,
     port: 7676,
-    allowedHosts: ["para.aidatorajiro.dev"],
+    allowedHosts: ["para.teamokadavr.work"],
     proxy: {
       '/api': 'http://localhost:7677/',
     },
     client: {
-      webSocketURL: 'wss://para.aidatorajiro.dev/ws',
+      webSocketURL: 'wss://para.teamokadavr.work/ws',
     }
   },
   plugins: [new HtmlWebpackPlugin({hash: true, template: 'index.html'})]
