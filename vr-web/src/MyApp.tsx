@@ -108,9 +108,10 @@ const MyApp = function () {
         const olddata = rotHistory[rotHistory.length - 2]
         const diff = newdata.clone().multiply(olddata.clone().invert())
         const rotL = leftHandRef.current?.object3D.quaternion.clone()
-        if (rotL !== undefined) {
+        const rotR = rightHandRef.current?.object3D.quaternion.clone()
+        if (rotL !== undefined && rotR !== undefined) {
           const rotLi = rotL.clone().invert()
-          setRotOffset(x => rotLi.multiply(diff).multiply(rotL).multiply(x.clone()))
+          setRotOffset(rotLi.multiply(rotR).multiply(rotL))
         }
       }
     }
