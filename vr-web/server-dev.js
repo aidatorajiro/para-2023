@@ -44,6 +44,7 @@ app.post('/api/upload_glb', function (req, res) {
     const filename = Math.floor((new Date()).getTime().toString() / 1000) + '_' + crypto.createHash('sha256').update(data).digest('hex').substring(0, 6) + '.glb'
     fs.writeFileSync(__dirname + '/dist/' + filename, data)
     fs.writeFileSync(__dirname + '/dist/latest.txt', filename)
+    console.log("アップロード完了　時刻：", new Date().toString());
   }
   res.redirect('/api/interface/success.html')
 })

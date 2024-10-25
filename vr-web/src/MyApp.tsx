@@ -7,7 +7,6 @@ const THREE = AFRAME.THREE
 
 const MyApp = function () {
   const COEFF_CALIB_POS = 0.33;
-  const COEFF_CALIB_ROT = 0.33;
   const COEFF_CALIB_SIZE = 1.0;
 
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
@@ -108,15 +107,10 @@ const MyApp = function () {
         const newdata = rotHistory[rotHistory.length - 1]
         const olddata = rotHistory[rotHistory.length - 2]
         const diff = newdata.clone().multiply(olddata.clone().invert())
-        const skullquat = skullRef.current?.object3D.quaternion;
-        if (skullquat) {
-          // Easy linear algebra!
-          // Skull' / Skull = Diff_Right
-          // (Skull . Diff_Skull) / Skull = Diff_Right
-          // Diff_Skull / Skull = Skull^(-1) . Diff_Right
-          // Diff_Skull = Skull^(-1) . Diff_Right . Skull
-          const diff_converted = skullquat.clone().invert().multiply(diff).multiply(skullquat);
-          setRotOffset(x => x.clone().multiply(diff_converted))
+        const rotL = leftHandRef.current?.object3D.quaternion.clone()
+        if (rotL !== undefined) {
+          const rotLi = rotL.clone().invert()
+          setRotOffset(x => rotLi.multiply(diff).multiply(rotL).multiply(x.clone()))
         }
       }
     }
@@ -151,8 +145,8 @@ const MyApp = function () {
       const leftobj = leftHandRef.current?.object3D;
       if (leftobj) {
         const pos = leftobj.position;
-        let posOffset_converted = posOffset.clone().applyQuaternion(leftobj.quaternion);
-        let skullPos = skullRef.current?.object3D.position
+        const posOffset_converted = posOffset.clone().applyQuaternion(leftobj.quaternion);
+        const skullPos = skullRef.current?.object3D.position
           .set(pos.x + posOffset_converted.x, pos.y + posOffset_converted.y, pos.z + posOffset_converted.z);
         if (skullPos) {
           sphereRef.current?.object3D.position.set(skullPos.x, skullPos.y, skullPos.z);
