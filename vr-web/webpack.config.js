@@ -40,9 +40,10 @@ module.exports = {
     compress: true,
     port: 7676,
     allowedHosts: ["para.teamokadavr.work"],
-    proxy: {
-      '/api': 'http://localhost:7677/',
-    },
+    proxy: [{
+      context: ['/api'],
+      target: 'http://localhost:7677/'
+    }],
     client: {
       webSocketURL: 'wss://para.teamokadavr.work/ws',
     }

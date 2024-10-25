@@ -3,15 +3,15 @@ import React, { useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
 import {send_log} from './utils';
 
-const THREE = AFRAME.THREE
+const THREE = AFRAME.THREE;
 
 const MyApp = function () {
   const COEFF_CALIB_POS = 0.33;
   const COEFF_CALIB_SIZE = 1.0;
 
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
-  const [posOffset, setPosOffset] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
-  const [rotOffset, setRotOffset] = useState<THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
+  const [posOffset, setPosOffset] = useState<AFRAME.THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const [rotOffset, setRotOffset] = useState<AFRAME.THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
   const [calibrationGrip, setCalibrationGrip] = useState<boolean>(false);
   const [calibrationTrigger, setCalibrationTrigger] = useState<boolean>(false);
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
@@ -50,8 +50,8 @@ const MyApp = function () {
   //
   // Construct Position and Rotation History
   //
-  const [posHistory, setPosHistory] = React.useState<THREE.Vector3[]>([]);
-  const [rotHistory, setRotHistory] = React.useState<THREE.Quaternion[]>([]);
+  const [posHistory, setPosHistory] = React.useState<AFRAME.THREE.Vector3[]>([]);
+  const [rotHistory, setRotHistory] = React.useState<AFRAME.THREE.Quaternion[]>([]);
   useEffect(() => {
     const int = setInterval(() => {
       if (calibrationGrip || calibrationTrigger || calibrationA || calibrationB) {
