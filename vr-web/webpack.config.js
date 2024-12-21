@@ -39,13 +39,13 @@ module.exports = {
     },
     compress: true,
     port: 7676,
-    allowedHosts: ["para.teamokadavr.work"],
+    allowedHosts: [process.env["HOSTNAME"] || "para.teamokadavr.work"],
     proxy: [{
       context: ['/api'],
       target: 'http://localhost:7677/'
     }],
     client: {
-      webSocketURL: 'wss://para.teamokadavr.work/ws',
+      webSocketURL: 'wss://' + process.env["HOSTNAME"] + '/ws',
     }
   },
   plugins: [new HtmlWebpackPlugin({hash: true, template: 'index.html'})]
