@@ -10,7 +10,7 @@ type SphereComponent = {
   material: AFRAME.Component<AFRAME.THREE.SpriteMaterial>
 }
 
-interface GLTFComponentInner extends AFRAME.Component<string> {
+interface GLTFComponentInner extends AFRAME.Component<String> {
   model: AFRAME.THREE.Group
 }
 
