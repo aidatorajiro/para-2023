@@ -1,28 +1,41 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
-import {send_log} from './utils';
+import {centerObject3D, send_log} from './utils';
 
 const THREE = AFRAME.THREE;
+const COEFF_CALIB_POS = 0.33;
+const COEFF_CALIB_SIZE = 1.0;
+
+type SphereComponent = {
+  material: AFRAME.Component<AFRAME.THREE.SpriteMaterial>
+}
+
+interface GLTFComponentInner extends AFRAME.Component<String> {
+  model: AFRAME.THREE.Group
+}
+
+type GLTFComponent = {
+  "gltf-model": GLTFComponentInner
+}
 
 const MyApp = function () {
-  const COEFF_CALIB_POS = 0.33;
-  const COEFF_CALIB_SIZE = 1.0;
 
+  const [loadedModel, setLoadedModel] = useState<string>("");
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
-  const [posOffset, setPosOffset] = useState<AFRAME.THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const [rotOffset, setRotOffset] = useState<AFRAME.THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
   const [calibrationGrip, setCalibrationGrip] = useState<boolean>(false);
   const [calibrationTrigger, setCalibrationTrigger] = useState<boolean>(false);
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
   const [calibrationB, setCalibrationB] = useState<boolean>(false);
   const [glbFileName, setGlbFileName] = useState<string>("model.glb");
+  const [sphereMaterial, setSphereMaterial] = useState<string>("color: red; opacity: 1; transparent: true;");
 
-  const sphereRef = React.useRef<AFRAME.Entity>();
+  const sphereRef = React.useRef<AFRAME.Entity<SphereComponent>>();
   const sceneRef = React.useRef<AFRAME.Scene>();
   const skullRef = React.useRef<AFRAME.Entity>();
   const rightHandRef = React.useRef<AFRAME.Entity>();
   const leftHandRef = React.useRef<AFRAME.Entity>();
+  const glbRef = React.useRef<AFRAME.Entity<GLTFComponent>>();
 
   //
   // Retrieve GLB filename
@@ -37,6 +50,7 @@ const MyApp = function () {
       if (end) { return; }
       if (filename !== glbFileName) {
         setGlbFileName(filename)
+        glbRef.current?.addEventListener('model-loaded', () => {setLoadedModel(filename)})
       }
     }, 5000)
 
@@ -46,6 +60,16 @@ const MyApp = function () {
     }
   }, [glbFileName])
 
+  //
+  // Justify center point
+  //
+  useEffect(() => {
+    send_log({message: "model " + loadedModel + " successfully loaded to HMD"})
+    const modelData = glbRef.current?.components["gltf-model"].model;
+    if (modelData) {
+      centerObject3D(modelData)
+    }
+  }, [loadedModel])
   
   //
   // Construct Position and Rotation History
@@ -73,45 +97,58 @@ const MyApp = function () {
     return () => {
       clearInterval(int)
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB])
+
+  const moveModel = useCallback((diff: AFRAME.THREE.Vector3) => {
+        const wrapper = skullRef.current?.object3D;
+        const model = wrapper?.children[0];
+        if (model) {
+          model.position.add(diff.applyQuaternion(wrapper.quaternion.clone().invert()))
+        }
+  }, [])
+  
+  /*const rotateModelDiff = useCallback((diff: AFRAME.THREE.Quaternion) => {
+        const rotL = leftHandRef.current?.object3D.quaternion.clone()
+        if (rotL !== undefined) {
+          const rotLi = rotL.clone().invert()
+          setRotOffset(x => rotLi.multiply(diff).multiply(rotL).multiply(x.clone()))
+        }
+  }, [])*/
+
+  const rotateModelAbs = useCallback((target: AFRAME.THREE.Quaternion) => {
+        const rotL = leftHandRef.current?.object3D.quaternion.clone()
+        if (rotL !== undefined) {
+          const rotLi = rotL.clone().invert()
+          setRotOffset(rotLi.multiply(target).multiply(rotL))
+        }
+  }, [])
 
   //
   // Calculate calibration values from position / rotation history of right hand controller
   //
   useEffect(() => {
     if (calibrationTrigger) {
-      if (posHistory.length > 2) {
-        const newdata = posHistory[posHistory.length - 1]
-        const olddata = posHistory[posHistory.length - 2]
-        const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS)
-        const leftobj = leftHandRef.current?.object3D;
-        if (leftobj) {
-          setPosOffset(x => x.clone().add(diff.applyQuaternion(leftobj.quaternion.clone().invert())))
-        }
-      }
+      setSphereMaterial("color: red; opacity: 1; transparent: true;")
+    } else {
+      setSphereMaterial("color: red; opacity: 0; transparent: true;")
     }
     if (calibrationGrip) {
       if (posHistory.length > 2) {
         const newdata = posHistory[posHistory.length - 1]
         const olddata = posHistory[posHistory.length - 2]
         const diff = newdata.clone().sub(olddata).multiplyScalar(COEFF_CALIB_POS).divideScalar(sizeCoeff)
-        const wrapper = skullRef.current?.object3D;
-        const model = wrapper?.children[0];
-        if (model) {
-          model.position.add(diff.applyQuaternion(wrapper.quaternion.clone().invert()))
-        }
+	      moveModel(diff)
       }
     }
     if (calibrationB) {
       if (rotHistory.length > 2) {
-        const newdata = rotHistory[rotHistory.length - 1]
-        const olddata = rotHistory[rotHistory.length - 2]
-        const diff = newdata.clone().multiply(olddata.clone().invert())
-        const rotL = leftHandRef.current?.object3D.quaternion.clone()
+        // const newdata = rotHistory[rotHistory.length - 1]
+        // const olddata = rotHistory[rotHistory.length - 2]
+        // const diff = newdata.clone().multiply(olddata.clone().invert())
         const rotR = rightHandRef.current?.object3D.quaternion.clone()
-        if (rotL !== undefined && rotR !== undefined) {
-          const rotLi = rotL.clone().invert()
-          setRotOffset(rotLi.multiply(rotR).multiply(rotL))
+        if (rotR !== undefined) {
+          rotateModelAbs(rotR)
         }
       }
     }
@@ -129,7 +166,8 @@ const MyApp = function () {
         }
       }
     }
-  }, [calibrationGrip, calibrationTrigger, calibrationA, posHistory])
+// eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB, posHistory, rotHistory])
 
   //
   // Sync size of face GLB model with calibration value
@@ -146,9 +184,7 @@ const MyApp = function () {
       const leftobj = leftHandRef.current?.object3D;
       if (leftobj) {
         const pos = leftobj.position;
-        const posOffset_converted = posOffset.clone().applyQuaternion(leftobj.quaternion);
-        const skullPos = skullRef.current?.object3D.position
-          .set(pos.x + posOffset_converted.x, pos.y + posOffset_converted.y, pos.z + posOffset_converted.z);
+        const skullPos = skullRef.current?.object3D.position.set(pos.x, pos.y, pos.z);
         if (skullPos) {
           sphereRef.current?.object3D.position.set(skullPos.x, skullPos.y, skullPos.z);
         }
@@ -164,7 +200,7 @@ const MyApp = function () {
     return () => {
       clearInterval(int)
     }
-  }, [posOffset, rotOffset])
+  }, [rotOffset])
 
   //
   // Register events
@@ -203,27 +239,17 @@ const MyApp = function () {
         send_log({message: 'end calib (B)'})
         setCalibrationB(false)
       },
-      /*
-      bbuttonup: function () {
-        const wrapper = skullRef.current?.object3D;
-        const model   = skullRef.current?.object3D.children[0];
-        if (model && wrapper) {
-          const diff = rightHandRef.current?.object3D.position.clone().sub(wrapper.position);
-          if (diff) {
-            model.position.sub(diff);
-            // setPosOffset(x => x.clone().add(diff));
-          }
-        }
-      }*/
     }
 
+    const rightHandRef_current_ = rightHandRef.current
+
     for (const funcname in eventfuncs) {
-      rightHandRef.current?.addEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
+      rightHandRef_current_?.addEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
     }
 
     return () => {
       for (const funcname in eventfuncs) {
-        rightHandRef.current?.removeEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
+        rightHandRef_current_?.removeEventListener(funcname, eventfuncs[funcname as keyof typeof eventfuncs]);
       } 
     }
   }, [])
@@ -231,9 +257,9 @@ const MyApp = function () {
   return(
     <a-scene xr-mode-ui="enabled: true; XRMode: ar;" ref={sceneRef}>
       <a-entity ref={skullRef}>
-        <a-entity gltf-model={glbFileName}></a-entity>
+        <a-entity ref={glbRef} gltf-model={glbFileName}></a-entity>
       </a-entity>
-      <a-sphere ref={sphereRef} color="#f5c0b3" radius="0.008"></a-sphere>
+      <a-sphere ref={sphereRef} material={sphereMaterial} radius="0.008"></a-sphere>
       <a-entity ref={rightHandRef}
         oculus-touch-controls="hand: right"
         vr-calib></a-entity>
