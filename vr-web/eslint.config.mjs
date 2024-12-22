@@ -28,7 +28,8 @@ export default [
         },
         rules: {
             ...pluginReactHooks.configs.recommended.rules,
-            "@typescript-eslint/no-wrapper-object-types": "off"
+            "@typescript-eslint/no-wrapper-object-types": "off",
+            "@typescript-eslint/no-empty-object-type": "off"
         }
     },
     {

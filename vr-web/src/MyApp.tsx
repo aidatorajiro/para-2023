@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import MainStyle from "./MainStyle.sass"
+
 import React, { useCallback, useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
 import {centerObject3D, send_log} from './utils';
@@ -30,12 +33,12 @@ const MyApp = function () {
   const [glbFileName, setGlbFileName] = useState<string>("model.glb");
   const [sphereMaterial, setSphereMaterial] = useState<string>("color: red; opacity: 1; transparent: true;");
 
-  const sphereRef = React.useRef<AFRAME.Entity<SphereComponent>>();
-  const sceneRef = React.useRef<AFRAME.Scene>();
-  const skullRef = React.useRef<AFRAME.Entity>();
-  const rightHandRef = React.useRef<AFRAME.Entity>();
-  const leftHandRef = React.useRef<AFRAME.Entity>();
-  const glbRef = React.useRef<AFRAME.Entity<GLTFComponent>>();
+  const sphereRef = React.useRef<AFRAME.Entity<SphereComponent>>(undefined);
+  const sceneRef = React.useRef<AFRAME.Scene>(undefined);
+  const skullRef = React.useRef<AFRAME.Entity>(undefined);
+  const rightHandRef = React.useRef<AFRAME.Entity>(undefined);
+  const leftHandRef = React.useRef<AFRAME.Entity>(undefined);
+  const glbRef = React.useRef<AFRAME.Entity<GLTFComponent>>(undefined);
 
   //
   // Retrieve GLB filename
