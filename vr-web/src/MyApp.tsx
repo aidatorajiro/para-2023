@@ -70,7 +70,7 @@ const MyApp = function () {
     send_log({message: "model " + loadedModel + " successfully loaded to HMD"})
     const modelData = glbRef.current?.components["gltf-model"].model;
     if (modelData) {
-      const calc_log = centerObject3D(modelData)
+      const calc_log = JSON.stringify(centerObject3D(modelData))
       send_log({"message": "Fix the center point and the scale", calc_log})
     }
   }, [loadedModel])
