@@ -26,6 +26,10 @@ const MyApp = function () {
   const [loadedModel, setLoadedModel] = useState<string>("");
   const [sizeCoeff, setSizeCoeff] = useState<number>(0.5);
   const [rotOffset, setRotOffset] = useState<AFRAME.THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
+  const [firstCalibB, setFirstCalibB] = useState<boolean>(true);
+  const [exitCalibB, setExitCalibB] = useState<boolean>(false);
+  const [rotOffsetOffset, setRotOffsetOffset] = useState<AFRAME.THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
+  const [rotOffsetBackup, setRotOffsetBackup] = useState<AFRAME.THREE.Quaternion>(new THREE.Quaternion(0, 0, 0, 1));
   const [calibrationGrip, setCalibrationGrip] = useState<boolean>(false);
   const [calibrationTrigger, setCalibrationTrigger] = useState<boolean>(false);
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
@@ -121,11 +125,11 @@ const MyApp = function () {
   }, [])*/
 
   const rotateModelAbs = useCallback((target: AFRAME.THREE.Quaternion) => {
-        const rotL = leftHandRef.current?.object3D.quaternion.clone()
-        if (rotL !== undefined) {
-          const rotLi = rotL.clone().invert()
-          setRotOffset(rotLi.multiply(target).multiply(rotL))
-        }
+    const rotL = leftHandRef.current?.object3D.quaternion.clone()
+    if (rotL !== undefined) {
+      const rotLi = rotL.clone().invert()
+      setRotOffset(rotLi.multiply(target).multiply(rotL))
+    }
   }, [])
 
   //
@@ -149,18 +153,32 @@ const MyApp = function () {
       }
     }
     if (calibrationB) {
-      if (rotHistory.length > 2) {
-        // const newdata = rotHistory[rotHistory.length - 1]
-        // const olddata = rotHistory[rotHistory.length - 2]
-        // const diff = newdata.clone().multiply(olddata.clone().invert())
-        const rotR = rightHandRef.current?.object3D.quaternion.clone()
-        if (rotR !== undefined) {
-          rotateModelAbs(rotR)
+      const rotR = rightHandRef.current?.object3D.quaternion.clone()
+      if (rotR !== undefined) {
+        if (firstCalibB) {
+          const rotL = leftHandRef.current?.object3D.quaternion.clone()
+          if (rotL !== undefined) {
+            setRotOffsetOffset(rotR.clone().invert().multiply(rotL).multiply(rotOffsetBackup).multiply(rotL.clone().invert()))
+          }
+          setFirstCalibB(false)
+          setExitCalibB(true)
+          showOrigin()
+          send_log({message: 'calib b start (inner logic)'})
+        } else {
+          rotateModelAbs(rotR.multiply(rotOffsetOffset))
         }
       }
-      showOrigin()
     } else {
-      hideOrigin()
+      if (exitCalibB) {
+        const rotR = rightHandRef.current?.object3D.quaternion.clone()
+        if (rotR !== undefined) {
+          setRotOffsetBackup(rotOffset)
+        }
+        setExitCalibB(false)
+        setFirstCalibB(true)
+        hideOrigin()
+        send_log({message: 'calib b end (inner logic)'})
+      }
     }
     if (calibrationA) {
       if (posHistory.length > 2) {
@@ -177,7 +195,7 @@ const MyApp = function () {
       }
     }
 // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB, posHistory, rotHistory])
+  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB, posHistory, rotHistory, rotOffsetOffset, firstCalibB, exitCalibB, rotOffsetBackup])
 
   //
   // Sync size of face GLB model with calibration value
