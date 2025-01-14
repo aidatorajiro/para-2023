@@ -45,7 +45,7 @@ module.exports = {
       target: 'http://localhost:7677/'
     }],
     client: {
-      webSocketURL: 'wss://' + process.env["HOSTNAME"] + '/ws',
+      webSocketURL: 'wss://' + (process.env["HOSTNAME"] || "para.teamokadavr.work") + '/ws',
     }
   },
   plugins: [new HtmlWebpackPlugin({hash: true, template: 'index.html'})]
