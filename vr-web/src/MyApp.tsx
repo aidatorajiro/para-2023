@@ -132,10 +132,13 @@ const MyApp = function () {
   // Calculate calibration values from position / rotation history of right hand controller
   //
   useEffect(() => {
+    const showOrigin = () => {setSphereMaterial("color: red; opacity: 1; transparent: true;")}
+    const hideOrigin = () => {setSphereMaterial("color: red; opacity: 0; transparent: true;")}
+
     if (calibrationTrigger) {
-      setSphereMaterial("color: red; opacity: 1; transparent: true;")
+      showOrigin()
     } else {
-      setSphereMaterial("color: red; opacity: 0; transparent: true;")
+      hideOrigin()
     }
     if (calibrationGrip) {
       if (posHistory.length > 2) {
@@ -155,6 +158,9 @@ const MyApp = function () {
           rotateModelAbs(rotR)
         }
       }
+      showOrigin()
+    } else {
+      hideOrigin()
     }
     if (calibrationA) {
       if (posHistory.length > 2) {
