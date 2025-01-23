@@ -41,9 +41,8 @@ const MyApp = function () {
   const leftHandRef = React.useRef<AFRAME.Entity>(undefined);
   const glbRef = React.useRef<AFRAME.Entity<GLTFComponent>>(undefined);
 
-  useEffect(() => {
+  const updateShowOriginStatus = useCallback(() => {
     const obj3d = sphereRef.current?.object3D;
-
     if (obj3d) {
       if (showOrigin) {
         setOpacityObject3D(obj3d, 1, []);
@@ -52,6 +51,10 @@ const MyApp = function () {
       }
     }
   }, [showOrigin])
+
+  useEffect(() => {
+    updateShowOriginStatus()
+  }, [updateShowOriginStatus])
 
   //
   // Retrieve GLB filename
@@ -85,8 +88,9 @@ const MyApp = function () {
     if (modelData) {
       const calc_log = JSON.stringify(centerObject3D(modelData))
       send_log({"message": "Fix the center point and the scale", calc_log})
+      updateShowOriginStatus()
     }
-  }, [loadedModel])
+  }, [loadedModel, updateShowOriginStatus])
   
   //
   // Construct Position and Rotation History
