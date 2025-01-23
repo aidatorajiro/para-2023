@@ -10,6 +10,12 @@ module.exports = {
   },
   module: {
     rules: [
+      { test: /\.(gltf|glb)$/i, use: [
+          {
+            loader: 'file-loader',
+          },
+        ]
+      },
       {
         test: /\.tsx$/,
         use: 'ts-loader',

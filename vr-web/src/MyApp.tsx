@@ -3,15 +3,12 @@ import MainStyle from "./MainStyle.sass"
 
 import React, { useCallback, useEffect, useState } from "react";
 import * as AFRAME from 'aframe';
-import {centerObject3D, send_log} from './utils';
+import {centerObject3D, send_log, setOpacityObject3D} from './utils';
+import controllerLeftGLTF from './assets/controller-left.glb';
 
 const THREE = AFRAME.THREE;
 const COEFF_CALIB_POS = 0.33;
 const COEFF_CALIB_SIZE = 1.0;
-
-type SphereComponent = {
-  material: AFRAME.Component<AFRAME.THREE.SpriteMaterial>
-}
 
 interface GLTFComponentInner extends AFRAME.Component<String> {
   model: AFRAME.THREE.Group
@@ -35,14 +32,26 @@ const MyApp = function () {
   const [calibrationA, setCalibrationA] = useState<boolean>(false);
   const [calibrationB, setCalibrationB] = useState<boolean>(false);
   const [glbFileName, setGlbFileName] = useState<string>("model.glb");
-  const [sphereMaterial, setSphereMaterial] = useState<string>("color: red; opacity: 1; transparent: true;");
+  const [showOrigin, setShowOrigin] = useState<boolean>(false);
 
-  const sphereRef = React.useRef<AFRAME.Entity<SphereComponent>>(undefined);
+  const sphereRef = React.useRef<AFRAME.Entity<GLTFComponent>>(undefined);
   const sceneRef = React.useRef<AFRAME.Scene>(undefined);
   const skullRef = React.useRef<AFRAME.Entity>(undefined);
   const rightHandRef = React.useRef<AFRAME.Entity>(undefined);
   const leftHandRef = React.useRef<AFRAME.Entity>(undefined);
   const glbRef = React.useRef<AFRAME.Entity<GLTFComponent>>(undefined);
+
+  useEffect(() => {
+    const obj3d = sphereRef.current?.object3D;
+
+    if (obj3d) {
+      if (showOrigin) {
+        setOpacityObject3D(obj3d, 1, []);
+      } else {
+        setOpacityObject3D(obj3d, 0, []);
+      }
+    }
+  }, [showOrigin])
 
   //
   // Retrieve GLB filename
@@ -136,13 +145,12 @@ const MyApp = function () {
   // Calculate calibration values from position / rotation history of right hand controller
   //
   useEffect(() => {
-    const showOrigin = () => {setSphereMaterial("color: red; opacity: 1; transparent: true;")}
-    const hideOrigin = () => {setSphereMaterial("color: red; opacity: 0; transparent: true;")}
-
     if (calibrationTrigger) {
-      showOrigin()
+      setShowOrigin(true)
     } else {
-      hideOrigin()
+      if (!calibrationB) {
+        setShowOrigin(false)
+      }
     }
     if (calibrationGrip) {
       if (posHistory.length > 2) {
@@ -162,7 +170,7 @@ const MyApp = function () {
           }
           setFirstCalibB(false)
           setExitCalibB(true)
-          showOrigin()
+          setShowOrigin(true)
           send_log({message: 'calib b start (inner logic)'})
         } else {
           rotateModelAbs(rotR.multiply(rotOffsetOffset))
@@ -176,7 +184,7 @@ const MyApp = function () {
         }
         setExitCalibB(false)
         setFirstCalibB(true)
-        hideOrigin()
+        setShowOrigin(false)
         send_log({message: 'calib b end (inner logic)'})
       }
     }
@@ -195,7 +203,7 @@ const MyApp = function () {
       }
     }
 // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB, posHistory, rotHistory, rotOffsetOffset, firstCalibB, exitCalibB, rotOffsetBackup])
+  }, [calibrationGrip, calibrationTrigger, calibrationA, calibrationB, posHistory, rotHistory, rotOffsetOffset, firstCalibB, exitCalibB, rotOffsetBackup, showOrigin])
 
   //
   // Sync size of face GLB model with calibration value
@@ -212,9 +220,11 @@ const MyApp = function () {
       const leftobj = leftHandRef.current?.object3D;
       if (leftobj) {
         const pos = leftobj.position;
+        const qua = leftobj.quaternion;
         const skullPos = skullRef.current?.object3D.position.set(pos.x, pos.y, pos.z);
         if (skullPos) {
           sphereRef.current?.object3D.position.set(skullPos.x, skullPos.y, skullPos.z);
+          sphereRef.current?.object3D.quaternion.set(qua.x, qua.y, qua.z, qua.w);
         }
       }
 
@@ -287,10 +297,10 @@ const MyApp = function () {
       <a-entity ref={skullRef}>
         <a-entity ref={glbRef} gltf-model={glbFileName}></a-entity>
       </a-entity>
-      <a-sphere ref={sphereRef} material={sphereMaterial} radius="0.008"></a-sphere>
+      <a-entity ref={sphereRef} gltf-model={controllerLeftGLTF}></a-entity>
       <a-entity ref={rightHandRef}
         oculus-touch-controls="hand: right"
-        vr-calib></a-entity>
+        ></a-entity>
       <a-entity ref={leftHandRef}
         oculus-touch-controls="hand: left; model: false;"
         ></a-entity>

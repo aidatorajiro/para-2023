@@ -37,6 +37,12 @@ export type CalculationLog = {
     after_pos: [number, number, number]
 }
 
+export type CalculationLogOpacity = {
+    children_count: number
+    children_logs: CalculationLog[]
+    is_mesh: boolean
+}
+
 /** 
  * Explore the given root 3D object. Then for all the 3d objects inside the root, set the center (for geometries, justify the center to the bounding box) to `(0, 0, 0)`, fix the scale to 1 (for grouping objects), and fix scale to `meshSize` (for the geometry inside meshes).
  * @param root the root object
@@ -80,6 +86,38 @@ export function centerObject3D(root: AFRAME.THREE.Object3D, meshSize: number = 0
     for (let i = 0; i < root.children.length; i++) {
         const child = root.children[i]
         centerObject3D(child, meshSize, my_log.children_logs)
+    }
+
+    log.push(my_log)
+
+    return log
+}
+
+/** 
+ * Explore the given root 3D object. Then for all the 3d objects inside the root, set the specified opacity.
+ * @param root the root object
+ * @param opacity the opacity of the child meshes 
+ * @returns the calculation process log */
+export function setOpacityObject3D(root: AFRAME.THREE.Object3D, opacity: number, log: CalculationLogOpacity[] = []) {
+    const my_log = {children_count: 0, children_logs: [], is_mesh: false}
+
+    if (root instanceof AFRAME.THREE.Mesh) {
+        if (opacity === 1) {
+            root.material.transparent = false
+            root.material.opacity = 1
+        } else {
+            root.material.transparent = true
+            root.material.opacity = opacity
+        }
+        root.material.needsUpdate = true
+        my_log.is_mesh = true
+    }
+
+    my_log.children_count = root.children.length
+
+    for (let i = 0; i < root.children.length; i++) {
+        const child = root.children[i]
+        setOpacityObject3D(child, opacity, my_log.children_logs)
     }
 
     log.push(my_log)
