@@ -152,9 +152,7 @@ const MyApp = function () {
     if (calibrationTrigger) {
       setShowOrigin(true)
     } else {
-      if (!calibrationB) {
-        setShowOrigin(false)
-      }
+      setShowOrigin(false)
     }
     if (calibrationGrip) {
       if (posHistory.length > 2) {
@@ -174,7 +172,6 @@ const MyApp = function () {
           }
           setFirstCalibB(false)
           setExitCalibB(true)
-          setShowOrigin(true)
           send_log({message: 'calib b start (inner logic)'})
         } else {
           rotateModelAbs(rotR.multiply(rotOffsetOffset))
@@ -188,7 +185,6 @@ const MyApp = function () {
         }
         setExitCalibB(false)
         setFirstCalibB(true)
-        setShowOrigin(false)
         send_log({message: 'calib b end (inner logic)'})
       }
     }
