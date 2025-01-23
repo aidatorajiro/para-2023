@@ -39,12 +39,21 @@ app.use('/api/upload_glb', expressFormData.parse({uploadDir: __dirname + '/uploa
 
 app.post('/api/upload_glb', function (req, res) {
   if (req.files.glbfile) {
-    const zip = new AdmZip(req.files.glbfile.path)
-    const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/))[0].getData()
-    const filename = Math.floor((new Date()).getTime().toString() / 1000) + '_' + crypto.createHash('sha256').update(data).digest('hex').substring(0, 6) + '.glb'
-    fs.writeFileSync(__dirname + '/dist/' + filename, data)
-    fs.writeFileSync(__dirname + '/dist/latest.txt', filename)
-    console.log("アップロード完了　時刻：", new Date().toString());
+    if (req.files.glbfile.path.match(/\.zip$/i)) {
+      const zip = new AdmZip(req.files.glbfile.path)
+      const data = zip.getEntries().filter(x=>x.entryName.match(/\.glb$/i))[0].getData()
+      const filename = Math.floor((new Date()).getTime().toString() / 1000) + '_' + crypto.createHash('sha256').update(data).digest('hex').substring(0, 6) + '.glb'
+      fs.writeFileSync(__dirname + '/dist/' + filename, data)
+      fs.writeFileSync(__dirname + '/dist/latest.txt', filename)
+      console.log("アップロード完了　時刻：", new Date().toString());
+    } else if (req.files.glbfile.path.match(/\.glb$/i)) {
+      const path = req.files.glbfile.path;
+      const data = fs.readFileSync(path);
+      const filename = Math.floor((new Date()).getTime().toString() / 1000) + '_' + crypto.createHash('sha256').update(data).digest('hex').substring(0, 6) + '.glb'
+      fs.writeFileSync(__dirname + '/dist/' + filename, data)
+      fs.writeFileSync(__dirname + '/dist/latest.txt', filename)
+      console.log("アップロード完了　時刻：", new Date().toString());
+    }
   }
   res.redirect('/api/interface/success.html')
 })
